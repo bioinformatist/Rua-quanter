@@ -67,6 +67,10 @@ Options:
   --start_date=START_DATE
                         感兴趣的起始日期，比如20200324
   --end_date=END_DATE   感兴趣的终止日期，比如20200407
+  --min_ratio=MIN_RATIO
+                        交易量比值的最小允许取值
+  --max_ratio=MAX_RATIO
+                        交易量比值的最大允许取值
   -f FILENAME, --file=FILENAME
                         输出的Excel文件名
 ```

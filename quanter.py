@@ -49,6 +49,10 @@ def main():
                       help = "感兴趣的起始日期，比如20200324")
     parser.add_option("--end_date", dest = "end_date",
                       help = "感兴趣的终止日期，比如20200407")
+    parser.add_option("--min_ratio", dest = "min_ratio",
+                      help = "交易量比值的最小允许取值")
+    parser.add_option("--max_ratio", dest = "max_ratio",
+                      help = "交易量比值的最大允许取值")                  
     parser.add_option("-f", "--file", dest = "filename", default = "out.xlsx",
                       help="输出的Excel文件名")
 
@@ -58,21 +62,24 @@ def main():
         date_list = [x.strftime('%Y%m%d') for x in list(pd.date_range(start = start_date, end = end_date))]
         return date_list
 
+    stock_list = pro.stock_basic(fields='ts_code, name')
+
     trade_date_range = get_date_list(options.start_date, options.end_date)
 
     range_data = pd.DataFrame()
     
     for day in trade_date_range:
-        df = pro.daily(trade_date = day)
+        df = pro.daily(trade_date = day, fields = 'ts_code, vol')
         if not df.empty: range_data = range_data.append(df)
     
-    day_data = pro.daily(trade_date = options.date)
+    day_data = pro.daily(trade_date = options.date, fields = 'ts_code, vol')
 
     mean_vol = range_data.groupby('ts_code')['vol'].mean()
 
     merged_df = pd.merge(mean_vol, day_data, on = 'ts_code', how = 'inner')
+    merged_df = pd.merge(merged_df, stock_list, on = 'ts_code', how = 'inner')
     merged_df['vol_ratio'] = merged_df['vol_y'] / merged_df['vol_x']
-    merged_df[['ts_code', 'vol_ratio']].to_excel(options.filename, index = False)
+    merged_df.loc[(merged_df['vol_ratio'] > float(options.min_ratio)) & (merged_df['vol_ratio'] < float(options.max_ratio))][['ts_code', 'name', 'vol_ratio']].to_excel(options.filename, index = False)
 
 if __name__ == "__main__":
     main()
